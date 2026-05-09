@@ -142,7 +142,7 @@ def main():
         # --- 数据集 ---
         data="EVD4UAV.yaml",       # 修改为你的数据集 yaml
         imgsz=640,
-        batch=16,
+        batch=32,
         device=0,
         workers=8,
         val=True,
@@ -170,11 +170,11 @@ def main():
         patience=50,
 
         # --- 数据增强 (航拍适配) ---
-        mosaic=0.5,
+        mosaic=1.0,
         close_mosaic=15,
         mixup=0.0,
         copy_paste=0.0,
-        degrees=15.0,
+        degrees=25.0,
         scale=0.3,
         translate=0.1,
         fliplr=0.5,
