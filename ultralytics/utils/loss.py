@@ -190,12 +190,18 @@ class SACIoUBboxLoss(BboxLoss):
 
         # 尺度自适应权重: 小目标获得更高权重
         if self.saciou_lambda > 0:
-            gt_boxes = target_bboxes[fg_mask]  # xyxy format, normalized [0,1]
+            gt_boxes = target_bboxes[fg_mask]  # xyxy format, grid space (divided by stride)
             gt_w = (gt_boxes[:, 2] - gt_boxes[:, 0]).clamp_(min=1e-6)
             gt_h = (gt_boxes[:, 3] - gt_boxes[:, 1]).clamp_(min=1e-6)
-            gt_area = gt_w * gt_h  # normalized area
+            # 转换到像素空间: gt_pixels = gt_grid * stride
+            stride_fg = stride[fg_mask.any(0)].clamp_(min=1.0)  # (num_fg,)
+            gt_w_px = gt_w * stride_fg
+            gt_h_px = gt_h * stride_fg
+            # 归一化面积: 相对于图像面积
+            img_area = imgsz[0] * imgsz[1]
+            gt_area_norm = (gt_w_px * gt_h_px / img_area).clamp_(min=1e-6, max=1.0)
             # 权重: 面积越小，权重越大，上限 3.0 防止极端值
-            scale_weight = (1.0 + self.saciou_lambda * (1.0 - gt_area)).clamp_(max=3.0).unsqueeze(-1)
+            scale_weight = (1.0 + self.saciou_lambda * (1.0 - gt_area_norm)).clamp_(max=3.0).unsqueeze(-1)
             weight = weight * scale_weight
 
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum

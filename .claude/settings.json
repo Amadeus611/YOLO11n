@@ -4,7 +4,10 @@
       "Bash(rm -rf runs/detect/train*)",
       "Bash(git init *)",
       "Bash(git remote *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git status *)"
     ],
     "additionalDirectories": [
       "D:\\1yolo\\yolo11n\\runs\\detect"
