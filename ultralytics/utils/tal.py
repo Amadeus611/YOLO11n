@@ -58,6 +58,7 @@ class TaskAlignedAssigner(nn.Module):
         self.topk2 = topk2 or topk
         self.num_classes = num_classes
         self.alpha = alpha
+        self.class_weights = None  # 类别权重，由 loss 函数设置
         self.beta = beta
         self.stride = stride
         self.stride_val = self.stride[1] if len(self.stride) > 1 else self.stride[0]
@@ -213,6 +214,12 @@ class TaskAlignedAssigner(nn.Module):
             norm_area = gt_area / (self.stride[0] ** 2)
             # 增益系数: 面积越小增益越大，上限 2.0 防止过度提升
             scale_factor = (1.0 + self.scale_aware_boost / (norm_area + 1.0)).clamp_(max=2.0)
+            # 类别感知增益: 提升少数类的对齐度量，使其在标签分配中不被多数类淹没
+            if self.class_weights is not None:
+                gt_cls = gt_labels.squeeze(-1).long()  # (b, n_max_boxes)
+                cls_w = self.class_weights.view(-1)  # (nc,)
+                cls_factor = cls_w[gt_cls].clamp_(max=2.0).unsqueeze(-1)  # (b, n_max_boxes, 1)
+                scale_factor = scale_factor * cls_factor
             bbox_scores = bbox_scores * scale_factor
 
         align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)

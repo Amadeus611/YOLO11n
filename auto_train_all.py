@@ -4,6 +4,7 @@ YOLO11-SAFE 消融实验自动训练脚本
 主创新点: P2 检测头 + SCAA 跨尺度注意力 + SGLA 尺度引导标签分配
 副创新点: GhostConv 轻量化卷积
 损失改进: SACIoU 尺度自适应 CIoU
+类别均衡: cls_pw 逆频率加权 + Copy-Paste 增强
 
 使用方法:
     conda activate yolo11
@@ -14,8 +15,8 @@ YOLO11-SAFE 消融实验自动训练脚本
     Table 2: 主创新子模块消融 (Exp05-08)
     Table 3: 副创新消融 (Exp09-10)
     Table 4: 损失函数消融 (Exp11-12)
-    Table 5: 完整方案 (Exp13)
-    Table 6: 强基线对比 (Exp14-16)
+    Table 5: 完整方案 (Exp12)
+    Table 6: 优化方案 (Exp13-14) — 修复类别不均衡 + GhostConv 不稳定
 """
 
 import warnings
@@ -32,27 +33,27 @@ def main():
         # =====================================================
         # Table 1: 核心对比
         # =====================================================
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11.yaml",
-            "name": "Exp01_Baseline",
-            "desc": "原版 YOLO11n 基线",
-        },
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-p2.yaml",
-            "name": "Exp02_P2_Only",
-            "desc": "仅 P2 检测头",
-        },
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-safe.yaml",
-            "name": "Exp03_SAFE_P2_SCAA",
-            "desc": "P2 + SCAA (主创新核心)",
-        },
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-safe.yaml",
-            "name": "Exp04_SAFE_Full",
-            "desc": "P2 + SCAA + SGLA (主创新完整)",
-            "scale_aware_boost": 0.5,
-        },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11.yaml",
+        #     "name": "Exp01_Baseline",
+        #     "desc": "原版 YOLO11n 基线",
+        # },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-p2.yaml",
+        #     "name": "Exp02_P2_Only",
+        #     "desc": "仅 P2 检测头",
+        # },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-safe.yaml",
+        #     "name": "Exp03_SAFE_P2_SCAA",
+        #     "desc": "P2 + SCAA (主创新核心)",
+        # },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-safe.yaml",
+        #     "name": "Exp04_SAFE_Full",
+        #     "desc": "P2 + SCAA + SGLA (主创新完整)",
+        #     "scale_aware_boost": 0.5,
+        # },
 
         # =====================================================
         # Table 2: 主创新子模块消融
@@ -78,11 +79,11 @@ def main():
         # =====================================================
         # Table 3: 副创新消融
         # =====================================================
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-ghost.yaml",
-            "name": "Exp08_Ghost_Only",
-            "desc": "仅 GhostConv 轻量化",
-        },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-ghost.yaml",
+        #     "name": "Exp08_Ghost_Only",
+        #     "desc": "仅 GhostConv 轻量化",
+        # },
         # {
         #     "yaml": "ultralytics/cfg/models/11/yolo11-safe-ghost.yaml",
         #     "name": "Exp09_SAFE_Ghost",
@@ -111,27 +112,40 @@ def main():
         # =====================================================
         # Table 5: 完整方案
         # =====================================================
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-safe-ghost.yaml",
-            "name": "Exp12_Full_SAFE_Ghost_SACIoU",
-            "desc": "全部启用: P2+SCAA+SGLA+Ghost+SACIoU",
-            "scale_aware_boost": 0.5,
-            "use_saciou": True,
-            "saciou_lambda": 2.0,
-        },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-safe-ghost.yaml",
+        #     "name": "Exp12_Full_SAFE_Ghost_SACIoU",
+        #     "desc": "全部启用: P2+SCAA+SGLA+Ghost+SACIoU",
+        #     "scale_aware_boost": 0.5,
+        #     "use_saciou": True,
+        #     "saciou_lambda": 2.0,
+        # },
 
         # =====================================================
-        # Table 6: 强基线对比 (可选)
+        # Table 6: 优化方案 (修复 Exp12 问题 + 类别均衡)
         # =====================================================
+        {
+            "yaml": "ultralytics/cfg/models/11/yolo11-safe.yaml",
+            "name": "Exp13_SAFE_SGLA_SACIoU_ClassBalanced",
+            "desc": "SAFE+SGLA+SACIoU(温和)+类别均衡+CopyPaste",
+            "scale_aware_boost": 0.5,
+            "use_saciou": True,
+            "saciou_lambda": 1.0,
+            "cls_pw": 0.3,
+            "copy_paste": 0.3,
+        },
         # {
-        #     "yaml": "ultralytics/cfg/models/26/yolo26n.yaml",
-        #     "name": "Exp13_YOLO26n",
-        #     "desc": "YOLO26n 对照",
-        # },
-        # {
-        #     "yaml": "ultralytics/cfg/models/rt-detr/rtdetr-l.yaml",
-        #     "name": "Exp14_RTDETR_l",
-        #     "desc": "RT-DETR 对照",
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-safe-ghost-neck.yaml",
+        #     "name": "Exp14_SAFE_GhostNeck_SGLA_SACIoU_HighRes",
+        #     "desc": "SAFE+Ghost(仅neck)+SGLA+SACIoU(温和)+高分辨率",
+        #     "scale_aware_boost": 0.5,
+        #     "use_saciou": True,
+        #     "saciou_lambda": 1.0,
+        #     "cls_pw": 0.3,
+        #     "copy_paste": 0.3,
+        #     "epochs": 200,
+        #     "imgsz": 800,
+        #     "batch": 16,  # 高分辨率需要更小 batch 防止 OOM
         # },
     ]
 
@@ -167,12 +181,12 @@ def main():
         dfl=1.5,
 
         # --- 训练策略 ---
-        epochs=150,
+        epochs=200,
         patience=50,
 
         # --- 数据增强 (航拍适配) ---
-        mosaic=0.7,
-        close_mosaic=20,
+        mosaic=1.0,
+        close_mosaic=30,
         mixup=0.0,
         copy_paste=0.0,
         degrees=25.0,
@@ -209,8 +223,12 @@ def main():
         train_kwargs = dict(common_kwargs)
         train_kwargs["name"] = exp["name"]
 
-        # 透传改进参数
-        for k in ("scale_aware_boost", "use_saciou", "saciou_lambda"):
+        # 透传改进参数 (模型架构 + 损失 + 类别均衡 + 训练策略)
+        override_keys = (
+            "scale_aware_boost", "use_saciou", "saciou_lambda",
+            "cls_pw", "copy_paste", "epochs", "imgsz", "batch",
+        )
+        for k in override_keys:
             if k in exp:
                 train_kwargs[k] = exp[k]
 

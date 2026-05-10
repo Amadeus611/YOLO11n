@@ -153,7 +153,8 @@ class DetectionTrainer(BaseTrainer):
 
         Class weights are computed based on inverse class frequency in the training dataset,
         raised to the power of cls_pw (0 < cls_pw <= 1 dampens, cls_pw > 1 amplifies).
-        Final weights are normalized so their mean equals 1.0.
+        Final weights are clamped to [0.5, 3.0] to prevent extreme values when class
+        distribution is highly skewed, then normalized so their mean equals 1.0.
         """
         assert 0 <= self.args.cls_pw <= 1.0, "cls_pw must be in the range [0, 1]"
         if self.args.cls_pw == 0.0:
@@ -164,6 +165,8 @@ class DetectionTrainer(BaseTrainer):
 
         weights = (1.0 / class_counts) ** self.args.cls_pw  # apply power directly
         weights = weights / weights.mean()  # normalize so mean equals 1.0
+        weights = np.clip(weights, 0.5, 3.0)  # 温和裁剪，防止极端不平衡时权重失控
+        weights = weights / weights.mean()  # 裁剪后重新归一化
         self.model.class_weights = torch.from_numpy(weights).to(self.device)
         LOGGER.info(f"Class weights: {self.model.class_weights.cpu().numpy().round(3)}")
 

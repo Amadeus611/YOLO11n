@@ -171,6 +171,7 @@ class SACIoUBboxLoss(BboxLoss):
     def __init__(self, reg_max: int = 16, saciou_lambda: float = 2.0):
         super().__init__(reg_max)
         self.saciou_lambda = saciou_lambda
+        self.class_weights = None  # 类别权重，由 v8DetectionLoss 设置
 
     def forward(
         self,
@@ -203,6 +204,14 @@ class SACIoUBboxLoss(BboxLoss):
             # 权重: 面积越小，权重越大，上限 3.0 防止极端值
             scale_weight = (1.0 + self.saciou_lambda * (1.0 - gt_area_norm)).clamp_(max=3.0).unsqueeze(-1)
             weight = weight * scale_weight
+
+        # 类别自适应权重: 少数类获得更高回归权重
+        cls_w = getattr(self, "class_weights", None)
+        if cls_w is not None:
+            fg_cls = target_scores[fg_mask].argmax(-1)  # (num_fg,)
+            cls_w_flat = cls_w.view(-1)  # (nc,)
+            cls_weight = cls_w_flat[fg_cls].clamp_(max=2.0).unsqueeze(-1)  # (num_fg, 1)
+            weight = weight * cls_weight
 
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
@@ -437,11 +446,15 @@ class v8DetectionLoss:
             topk2=tal_topk2,
             scale_aware_boost=getattr(h, "scale_aware_boost", 0.0),
         )
+        # 将类别权重传递给 assigner，用于 SGLA 类别感知增益
+        if self.class_weights is not None:
+            self.assigner.class_weights = self.class_weights
         # SACIoU: 尺度自适应 CIoU 损失 (use_saciou=True 时启用)
         use_saciou = getattr(h, "use_saciou", False)
         saciou_lambda = getattr(h, "saciou_lambda", 2.0)
         if use_saciou:
             self.bbox_loss = SACIoUBboxLoss(m.reg_max, saciou_lambda).to(device)
+            self.bbox_loss.class_weights = self.class_weights
         else:
             self.bbox_loss = BboxLoss(m.reg_max).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
