@@ -143,6 +143,7 @@ def main():
         data="EVD4UAV.yaml",       # 修改为你的数据集 yaml
         imgsz=640,
         batch=32,
+        project="/home/ssssss/1yolo/Ablation_Results",
         device=0,
         workers=8,
         val=True,
@@ -170,8 +171,8 @@ def main():
         patience=50,
 
         # --- 数据增强 (航拍适配) ---
-        mosaic=1.0,
-        close_mosaic=15,
+        mosaic=0.7,
+        close_mosaic=20,
         mixup=0.0,
         copy_paste=0.0,
         degrees=25.0,
@@ -202,6 +203,7 @@ def main():
         print(f"{'=' * 70}\n")
 
         model = YOLO(exp["yaml"])
+        model.load("yolo11n.pt")
 
         # 合并公共参数和实验特定参数
         train_kwargs = dict(common_kwargs)
