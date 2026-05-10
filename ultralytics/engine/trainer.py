@@ -351,6 +351,17 @@ class BaseTrainer:
         self.validator = self.get_validator()
         self.ema = ModelEMA(self.model)
         self.set_class_weights()  # compute class weights after dataloader is ready
+        # 将类别权重传播到已创建的 criterion (loss 函数)
+        cw = getattr(self.model, "class_weights", None)
+        if cw is not None:
+            criterion = getattr(unwrap_model(self.model), "criterion", None)
+            if criterion is not None:
+                criterion.class_weights = cw.view(1, 1, -1)
+                if hasattr(criterion, "assigner") and criterion.assigner is not None:
+                    criterion.assigner.class_weights = criterion.class_weights
+                if hasattr(criterion, "bbox_loss") and criterion.bbox_loss is not None:
+                    criterion.bbox_loss.class_weights = criterion.class_weights
+                LOGGER.info(f"Class weights propagated to loss: {cw.cpu().numpy().round(3)}")
         if RANK in {-1, 0}:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
