@@ -195,9 +195,11 @@ class SACIoUBboxLoss(BboxLoss):
             gt_w = (gt_boxes[:, 2] - gt_boxes[:, 0]).clamp_(min=1e-6)
             gt_h = (gt_boxes[:, 3] - gt_boxes[:, 1]).clamp_(min=1e-6)
             # 转换到像素空间: gt_pixels = gt_grid * stride
-            stride_fg = stride[fg_mask.any(0)].clamp_(min=1.0)  # (num_fg,)
-            gt_w_px = gt_w * stride_fg
-            gt_h_px = gt_h * stride_fg
+            # 展开 stride 到 batch 维度后用 fg_mask 索引，保证 shape=(num_fg_total, 1)
+            # 不能用 fg_mask.any(0) 去重，否则同一 anchor 在多个 batch 元素中前景时 shape 不匹配
+            stride_fg = stride.unsqueeze(0).expand(fg_mask.shape[0], -1, -1)[fg_mask].clamp_(min=1.0)
+            gt_w_px = gt_w * stride_fg.squeeze(-1)
+            gt_h_px = gt_h * stride_fg.squeeze(-1)
             # 归一化面积: 相对于图像面积
             img_area = imgsz[0] * imgsz[1]
             gt_area_norm = (gt_w_px * gt_h_px / img_area).clamp_(min=1e-6, max=1.0)

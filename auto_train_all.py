@@ -33,11 +33,11 @@ def main():
         # =====================================================
         # Table 1: 核心对比
         # =====================================================
-        # {
-        #     "yaml": "ultralytics/cfg/models/11/yolo11.yaml",
-        #     "name": "Exp01_Baseline",
-        #     "desc": "原版 YOLO11n 基线",
-        # },
+        {
+            "yaml": "ultralytics/cfg/models/11/yolo11.yaml",
+            "name": "Exp01_Baseline",
+            "desc": "原版 YOLO11n 基线",
+        },
         # {
         #     "yaml": "ultralytics/cfg/models/11/yolo11-p2.yaml",
         #     "name": "Exp02_P2_Only",
@@ -52,33 +52,33 @@ def main():
         #     "yaml": "ultralytics/cfg/models/11/yolo11-safe.yaml",
         #     "name": "Exp04_SAFE_Full",
         #     "desc": "P2 + SCAA + SGLA (主创新完整)",
-        #     "scale_aware_boost": 0.5,
+        #     "scale_aware_boost": 0.2,
         # },
 
         # =====================================================
         # Table 2: 主创新子模块消融
         # =====================================================
-        # {
-        #     "yaml": "ultralytics/cfg/models/11/yolo11-scaa-only.yaml",
-        #     "name": "Exp05_SCAA_Only",
-        #     "desc": "仅 SCAA (无 P2)",
-        # },
-        # {
-        #     "yaml": "ultralytics/cfg/models/11/yolo11.yaml",
-        #     "name": "Exp06_SGLA_Only",
-        #     "desc": "仅 SGLA (无结构改动)",
-        #     "scale_aware_boost": 0.5,
-        # },
+        {
+            "yaml": "ultralytics/cfg/models/11/yolo11-scaa-only.yaml",
+            "name": "Exp05_SCAA_Only",
+            "desc": "仅 SCAA (无 P2)",
+        },
+        {
+            "yaml": "ultralytics/cfg/models/11/yolo11.yaml",
+            "name": "Exp06_SGLA_Only",
+            "desc": "仅 SGLA (无结构改动)",
+            "scale_aware_boost": 0.2,
+        },
         # {
         #     "yaml": "ultralytics/cfg/models/11/yolo11-p2.yaml",
         #     "name": "Exp07_P2_SGLA",
         #     "desc": "P2 + SGLA (无 SCAA)",
-        #     "scale_aware_boost": 0.5,
+        #     "scale_aware_boost": 0.2,
         # },
 
-        # =====================================================
-        # Table 3: 副创新消融
-        # =====================================================
+        # # =====================================================
+        # # Table 3: 副创新消融
+        # # =====================================================
         # {
         #     "yaml": "ultralytics/cfg/models/11/yolo11-ghost.yaml",
         #     "name": "Exp08_Ghost_Only",
@@ -90,59 +90,59 @@ def main():
         #     "desc": "主创新 + 副创新 (无 SACIoU)",
         # },
 
-        # # =====================================================
-        # # Table 4: 损失函数消融
-        # # =====================================================
-        # {
-        #     "yaml": "ultralytics/cfg/models/11/yolo11.yaml",
-        #     "name": "Exp10_SACIoU_Only",
-        #     "desc": "仅 SACIoU 损失",
-        #     "use_saciou": True,
-        #     "saciou_lambda": 2.0,
-        # },
+        # =====================================================
+        # Table 4: 损失函数消融
+        # =====================================================
+        {
+            "yaml": "ultralytics/cfg/models/11/yolo11.yaml",
+            "name": "Exp10_SACIoU_Only",
+            "desc": "仅 SACIoU 损失",
+            "use_saciou": True,
+            "saciou_lambda": 1.0,
+        },
         # {
         #     "yaml": "ultralytics/cfg/models/11/yolo11-safe.yaml",
         #     "name": "Exp11_SAFE_SACIoU",
         #     "desc": "主创新 + SACIoU",
-        #     "scale_aware_boost": 0.5,
+        #     "scale_aware_boost": 0.2,
         #     "use_saciou": True,
-        #     "saciou_lambda": 2.0,
+        #     "saciou_lambda": 1.0,
         # },
 
-        # =====================================================
-        # Table 5: 完整方案
-        # =====================================================
+        # # =====================================================
+        # # Table 5: 完整方案
+        # # =====================================================
         # {
         #     "yaml": "ultralytics/cfg/models/11/yolo11-safe-ghost.yaml",
         #     "name": "Exp12_Full_SAFE_Ghost_SACIoU",
         #     "desc": "全部启用: P2+SCAA+SGLA+Ghost+SACIoU",
-        #     "scale_aware_boost": 0.5,
+        #     "scale_aware_boost": 0.2,
         #     "use_saciou": True,
-        #     "saciou_lambda": 2.0,
+        #     "saciou_lambda": 1.0,
         # },
 
-        # =====================================================
-        # Table 6: 优化方案 (修复 Exp12 问题 + 类别均衡)
-        # =====================================================
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-safe.yaml",
-            "name": "Exp13_SAFE_SGLA_SACIoU_ClassBalanced",
-            "desc": "SAFE+SGLA+SACIoU(温和)+类别均衡+CopyPaste",
-            "scale_aware_boost": 0.5,
-            "use_saciou": True,
-            "saciou_lambda": 1.0,
-            "cls_pw": 0.3,
-            "copy_paste": 0.3,
-        },
+        # # =====================================================
+        # # Table 6: 优化方案 (修复 Exp12 问题 + 类别均衡)
+        # # =====================================================
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-safe.yaml",
+        #     "name": "Exp13_SAFE_SGLA_SACIoU_ClassBalanced",
+        #     "desc": "SAFE+SGLA+SACIoU(温和)+类别均衡+CopyPaste",
+        #     "scale_aware_boost": 0.2,
+        #     "use_saciou": True,
+        #     "saciou_lambda": 1.0,
+        #     "cls_pw": 0.3,
+        #     "copy_paste": 0.15,
+        # },
         # {
         #     "yaml": "ultralytics/cfg/models/11/yolo11-safe-ghost-neck.yaml",
         #     "name": "Exp14_SAFE_GhostNeck_SGLA_SACIoU_HighRes",
         #     "desc": "SAFE+Ghost(仅neck)+SGLA+SACIoU(温和)+高分辨率",
-        #     "scale_aware_boost": 0.5,
+        #     "scale_aware_boost": 0.2,
         #     "use_saciou": True,
         #     "saciou_lambda": 1.0,
         #     "cls_pw": 0.3,
-        #     "copy_paste": 0.3,
+        #     "copy_paste": 0.15,
         #     "epochs": 200,
         #     "imgsz": 800,
         #     "batch": 16,  # 高分辨率需要更小 batch 防止 OOM
